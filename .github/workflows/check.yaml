@@ -1,0 +1,38 @@
+on:
+  push:
+  pull_request:
+
+name: check
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v2
+
+      - name: Install libmlpack-dev from source, see https://github.com/mlpack/mlpack/issues/3274
+        run: |
+          cd ..
+          https://github.com/alexge233/relearn.git --depth 1
+          cd -
+
+      #- name: Install Codecov
+      #  run: sudo pip install codecov
+
+      - name: qmake
+        run: qmake relearn_example_1.pro
+
+      - name: make
+        run: make debug --silent
+
+      - name: run
+        run: ./relearn_example_1
+
+      #- name: Measure codecov
+      #  run: |
+      #    ./get_code_cov.sh
+      #    codecov
+      #    bash <(curl -s https://codecov.io/bash)
