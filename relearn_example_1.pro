@@ -22,3 +22,6 @@ CONFIG(debug, debug|release) {
 
 HEADERS += gridworld_header.hpp
 SOURCES += main.cpp
+
+QMAKE_CXXFLAGS += -Wl,--stack,100000000
+QMAKE_CXXFLAGS += -Wl,--heap,100000000

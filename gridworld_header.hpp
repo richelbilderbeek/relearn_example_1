@@ -103,9 +103,10 @@ struct world
 /// load the gridworld from the text file
 /// boundaries are `occupied` e.g., can't move into them
 /// fire/danger blocks are marked with a reward -1
-world populate()
+world populate(const std::string& filename = "../relearn/examples/gridworld.txt")
 {
-    std::ifstream infile("../examples/gridworld.txt");
+    std::ifstream infile(filename.c_str());
+    assert(infile.good());
     world environment = {};
     std::string line;
     while (std::getline(infile, line))
@@ -130,33 +131,42 @@ struct rand_direction
                                          world gridworld,
                                          grid current)
     {
+        assert(!gridworld.blocks.empty());
         std::uniform_int_distribution<unsigned int> dist(0, 3);
         unsigned int x = current.x;
         unsigned int y = current.y;
-        // randomly decide on next grid - we map numbers to a direction
-        unsigned int d = dist(prng);
-        switch (d) {
-            case 0 : y--;
-                     break;
-            case 1 : x++;
-                     break;
-            case 2 : y++;
-                     break;
-            case 3 : x--;
-                     break;
+        while (1)
+        {
+          // randomly decide on next grid - we map numbers to a direction
+          unsigned int d = dist(prng);
+          switch (d) {
+              case 0 : y--;
+                       break;
+              case 1 : x++;
+                       break;
+              case 2 : y++;
+                       break;
+              case 3 : x--;
+                       break;
+          }
+          auto it = std::find_if(gridworld.blocks.begin(),
+                                 gridworld.blocks.end(),
+                                 [&](const auto b) {
+                                     return b.x == x && b.y == y;
+                                 });
+          if (it == gridworld.blocks.end()) {
+              //Try again
+              //return rand_direction()(prng, gridworld, current);
+              continue;
+          }
+          if (it->occupied) {
+              //Try again
+              //return rand_direction()(prng, gridworld, current);
+              continue;
+          }
+          return std::make_pair(direction{d}, *it);
         }
-        auto it = std::find_if(gridworld.blocks.begin(),
-                               gridworld.blocks.end(),
-                               [&](const auto b) {
-                                   return b.x == x && b.y == y;
-                               });
-        if (it == gridworld.blocks.end()) {
-            return rand_direction()(prng, gridworld, current);
-        }
-        if (it->occupied) {
-            return rand_direction()(prng, gridworld, current);
-        }
-        return std::make_pair(direction{d}, *it);
+
     }
 };
 #endif
